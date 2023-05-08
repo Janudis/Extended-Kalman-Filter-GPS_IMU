@@ -18,46 +18,33 @@ int main() {
     std::ifstream raw_data("localization_log_drivepark_3_python.csv");
     std::string line, value;
 
-    // Read CSV file and store values in vectors
-    std::getline(raw_data, line); // Skip header line
-//    std::getline(raw_data, line); //gia drivepark_3
-//    std::getline(raw_data, line);
-//    std::getline(raw_data, line);
-//    std::getline(raw_data, line);
-//    std::getline(raw_data, line);
 // Read CSV file and store values in vectors
+    std::getline(raw_data, line); // Skip header line
+
+    long long int first_timestamp = 0;
+    bool first_line = true;
+
     while (std::getline(raw_data, line)) {
         std::stringstream line_stream(line);
         std::vector<double> row;
+
+        std::getline(line_stream, value, ',');
+        long long int timestamp = std::stoll(value);
+        if (first_line) {
+            first_timestamp = timestamp;
+            first_line = false;
+        }
+        double elapsed_time = (timestamp - first_timestamp) / 1000000.0;
+        ts.push_back(elapsed_time); // Store the elapsed time in seconds
+
         while (std::getline(line_stream, value, ',')) {
             row.push_back(std::stod(value));
         }
-        // Read CSV file and store values in vectors
-        std::getline(raw_data, line); // Skip header line
-        long long int first_timestamp = 0;
-        bool first_line = true;
-        while (std::getline(raw_data, line)) {
-            std::stringstream line_stream(line);
-            std::vector<double> row;
-            long long int timestamp;
-            std::getline(line_stream, value, ',');
-            timestamp = std::stoll(value);
+        gt_trajectory_lla.push_back({row[0], row[1], row[2]});
+        gt_yaws.push_back(deg2rad(row[9]));
+        obs_yaw_rates.push_back(deg2rad(row[12]));
+        obs_forward_velocities.push_back(row[3]);
 
-            if (first_line) {
-                first_timestamp = timestamp;
-                first_line = false;
-            }
-            double elapsed_time = (timestamp - first_timestamp) / 1000000.0;
-            ts.push_back(elapsed_time); // Store the elapsed time in seconds
-            while (std::getline(line_stream, value, ',')) {
-                row.push_back(std::stod(value));
-            }
-
-            gt_trajectory_lla.push_back({row[0], row[1], row[2]});
-            gt_yaws.push_back(deg2rad(row[10]));
-            obs_yaw_rates.push_back(deg2rad(row[13]));
-            obs_forward_velocities.push_back(row[4]);
-        }
     }
 //    while (std::getline(raw_data, line)) { //gia drivepark_dim
 //        std::stringstream line_stream(line);
