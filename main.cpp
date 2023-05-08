@@ -40,7 +40,7 @@ int main() {
         while (std::getline(line_stream, value, ',')) {
             row.push_back(std::stod(value));
         }
-        gt_trajectory_lla.push_back({row[0], row[1], row[2]});
+        gt_trajectory_lla.push_back({row[1], row[0], row[2]});
         gt_yaws.push_back(deg2rad(row[9]));
         obs_yaw_rates.push_back(deg2rad(row[12]));
         obs_forward_velocities.push_back(row[3]);
@@ -70,9 +70,9 @@ int main() {
 //        obs_yaw_rates.push_back(deg2rad(row[13]));
 //        obs_forward_velocities.push_back(row[4]);
 //    }
+
     std::array<double, 3> origin = gt_trajectory_lla[0]; // Set the initial position to the origin
     std::vector<std::array<double, 3>> obs_trajectory_xyz = lla_to_enu(gt_trajectory_lla, origin);
-
     size_t N = ts.size(); // Number of data points
 
     double xy_obs_noise_std = 5.0; // Standard deviation of observation noise of x and y in meters
@@ -84,7 +84,7 @@ int main() {
     double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
-
+    //std::cout<<x<<std::endl;
     Eigen::Matrix3d P;
     P << xy_obs_noise_std * xy_obs_noise_std, 0, 0,
             0, xy_obs_noise_std * xy_obs_noise_std, 0,
@@ -107,7 +107,6 @@ int main() {
     std::vector<double> mu_x = {x[0]};
     std::vector<double> mu_y = {x[1]};
     std::vector<double> mu_theta = {x[2]};
-
     std::vector<double> var_x = {P(0, 0)};
     std::vector<double> var_y = {P(1, 1)};
     std::vector<double> var_theta = {P(2, 2)};
@@ -153,8 +152,8 @@ int main() {
     output_file << "latitude,longitude,altitude,state_x,state_y,state_yaw" << std::endl;
 
     for (size_t i = 0; i < obs_trajectory_xyz.size(); ++i) {
-        double lat = obs_trajectory_xyz[i][0];
-        double lon = obs_trajectory_xyz[i][1];
+        double lon = obs_trajectory_xyz[i][0];
+        double lat = obs_trajectory_xyz[i][1];
         double alt = obs_trajectory_xyz[i][2];
         double state_x = mu_x[i];
         double state_y = mu_y[i];
