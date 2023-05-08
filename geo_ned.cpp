@@ -7,7 +7,7 @@ double b = (1.0 - f) * a;
 double e = sqrt(a * a - b * b) / a;
 
 double deg2rad(double deg){
-    return deg/180*M_PI;
+    return deg *M_PI / 180.0;
 }
 
 double sample_normal_distribution(double mean, double std_dev) {

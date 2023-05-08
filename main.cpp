@@ -72,9 +72,13 @@ int main() {
 //    }
 
     std::array<double, 3> origin = gt_trajectory_lla[0]; // Set the initial position to the origin
-    std::vector<std::array<double, 3>> obs_trajectory_xyz = lla_to_enu(gt_trajectory_lla, origin);
-    size_t N = ts.size(); // Number of data points
 
+    std::vector<std::array<double, 3>> obs_trajectory_xyz = lla_to_enu(gt_trajectory_lla, origin);
+    std::cout<<gt_trajectory_lla[199][0]<<std::endl;
+    std::cout<<gt_trajectory_lla[200][0]<<std::endl;
+    size_t N = ts.size(); // Number of data points
+    std::cout<<obs_trajectory_xyz[199][0]<<std::endl;
+    std::cout<<obs_trajectory_xyz[200][0]<<std::endl;
     double xy_obs_noise_std = 5.0; // Standard deviation of observation noise of x and y in meters
     double yaw_rate_noise_std = 0.02; // Standard deviation of yaw rate in rad/s
     double forward_velocity_noise_std = 0.3; // Standard deviation of forward velocity in m/s
