@@ -42,10 +42,10 @@ void ExtendedKalmanFilter::propagate(const Eigen::Vector2d& u, double dt, const 
 }
 
 
-const Eigen::Vector3d& ExtendedKalmanFilter::getState() const {
-    return x_;
-}
-
-const Eigen::Matrix3d& ExtendedKalmanFilter::getCovariance() const {
-    return P_;
-}
+//const Eigen::Vector3d& ExtendedKalmanFilter::getState() const {
+//    return x_;
+//}
+//
+//const Eigen::Matrix3d& ExtendedKalmanFilter::getCovariance() const {
+//    return P_;
+//}

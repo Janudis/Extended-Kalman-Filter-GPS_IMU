@@ -110,6 +110,7 @@ int main() {
     std::vector<double> var_x = {P(0, 0)};
     std::vector<double> var_y = {P(1, 1)};
     std::vector<double> var_theta = {P(2, 2)};
+
 //
     double t_last = 0.0;
     for (size_t t_idx = 1; t_idx < N; ++t_idx) {
@@ -142,14 +143,13 @@ int main() {
         var_x.push_back(kf.P_(0, 0));
         var_y.push_back(kf.P_(1, 1));
         var_theta.push_back(kf.P_(2, 2));
-
         t_last = t;
     }
     // mu_x, mu_y, and mu_theta are the estimated 2D pose [x, y, theta]
     // var_x, var_y, and var_theta are the estimated error variances of 2D pose
 
     std::ofstream output_file("output.csv");
-    output_file << "latitude,longitude,altitude,state_x,state_y,state_yaw" << std::endl;
+    output_file << "longitude,latitude,altitude,state_x,state_y,state_yaw" << std::endl;
 
     for (size_t i = 0; i < obs_trajectory_xyz.size(); ++i) {
         double lon = obs_trajectory_xyz[i][0];
@@ -158,7 +158,7 @@ int main() {
         double state_x = mu_x[i];
         double state_y = mu_y[i];
         double state_yaw = mu_theta[i];
-        output_file << lat << "," << lon << "," << alt << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
+        output_file << lon << "," << lat << "," << alt << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
 //        if (i < mu_x.size()) {
 //            double state_x = mu_x[i];
 //            double state_y = mu_y[i];

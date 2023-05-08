@@ -63,28 +63,22 @@ std::vector<std::array<double, 3>> lla_to_ecef(const std::vector<std::array<doub
 }
 
 std::vector<std::array<double, 3>> ecef_to_enu(const std::vector<std::array<double, 3>>& points_ecef, const std::array<double, 3>& ref_lla) {
-    std::vector<std::array<double, 3>> ref_ecef_vec = lla_to_ecef({ ref_lla });
-    std::array<double, 3> ref_ecef = ref_ecef_vec[0];
-
-    MatrixXd dX(points_ecef.size(), 3);
-    for (int i = 0; i < points_ecef.size(); i++) {
-        dX.row(i) = Vector3d(points_ecef[i][0], points_ecef[i][1], points_ecef[i][2]).transpose() - Vector3d(ref_ecef[0], ref_ecef[1], ref_ecef[2]).transpose();
-    }
-
-    double ref_lon = ref_lla[0] * M_PI / 180.0;
-    double ref_lat = ref_lla[1] * M_PI / 180.0;
-
-    Matrix3d Renu;
-    Renu << -sin(ref_lon), cos(ref_lon), 0,
-            -sin(ref_lat) * cos(ref_lon), -sin(ref_lat) * sin(ref_lon), cos(ref_lat),
-            cos(ref_lat) * cos(ref_lon), cos(ref_lat) * sin(ref_lon), sin(ref_lat);
-
-    MatrixXd dXenu = Renu * dX.transpose();
-
     std::vector<std::array<double, 3>> points_enu(points_ecef.size());
+
+    double lon = deg2rad(ref_lla[0]);
+    double lat = deg2rad(ref_lla[1]);
+    double alt = ref_lla[2];
+
+    std::array<double, 3> ref_ecef = lla_to_ecef({ref_lla})[0]; // Make sure lla_to_ecef can accept a single point
+
+    Eigen::Matrix3d R = Rz(M_PI / 2.0) * Ry(M_PI / 2.0 - lat) * Rz(lon);
+
     for (int i = 0; i < points_ecef.size(); i++) {
-        points_enu[i] = { dXenu(0, i), dXenu(1, i), dXenu(2, i) };
+        Eigen::Vector3d relative(points_ecef[i][0] - ref_ecef[0], points_ecef[i][1] - ref_ecef[1], points_ecef[i][2] - ref_ecef[2]);
+        Eigen::Vector3d enu = R * relative;
+        points_enu[i] = { enu[0], enu[1], enu[2] };
     }
+
     return points_enu;
 }
 
