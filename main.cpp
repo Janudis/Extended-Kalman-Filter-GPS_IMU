@@ -54,9 +54,9 @@ int main() {
             }
 
             gt_trajectory_lla.push_back({row[0], row[1], row[2]});
-            gt_yaws.push_back(deg2rad(row[9]));
-            obs_yaw_rates.push_back(deg2rad(row[12]));
-            obs_forward_velocities.push_back(row[3]);
+            gt_yaws.push_back(deg2rad(row[10]));
+            obs_yaw_rates.push_back(deg2rad(row[13]));
+            obs_forward_velocities.push_back(row[4]);
         }
     }
 //    while (std::getline(raw_data, line)) { //gia drivepark_dim
