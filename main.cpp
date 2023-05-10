@@ -84,8 +84,8 @@ int main() {
 
     // Prepare initial estimate and its error covariance
     double initial_yaw_std = M_PI;
-    //double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
-    double initial_yaw = gt_yaws[0];
+    double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
+    //double initial_yaw = gt_yaws[0];
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
     //std::cout<<x<<std::endl;
@@ -125,7 +125,7 @@ int main() {
         Eigen::Vector2d u(obs_forward_velocities[t_idx], obs_yaw_rates[t_idx]);
         // Because velocity and yaw rate are multiplied with `dt` in the state transition function,
         // its noise covariance must be multiplied with `dt**2.`
-        Eigen::Matrix3d R_ = R * (dt * dt);
+        //Eigen::Matrix3d R_ = R * (dt * dt);
         // Propagate!
         kf.propagate(u, dt, R);
         //cout<<"predict :" <<kf.x_[0]<<endl;
