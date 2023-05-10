@@ -13,7 +13,6 @@ public:
 
 //    const Eigen::Vector3d& getState() const;
 //    const Eigen::Matrix3d& getCovariance() const;
-
     Eigen::Vector3d x_;
     Eigen::Matrix3d P_;
 };
