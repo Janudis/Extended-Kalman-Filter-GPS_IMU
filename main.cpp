@@ -84,7 +84,8 @@ int main() {
 
     // Prepare initial estimate and its error covariance
     double initial_yaw_std = M_PI;
-    double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
+//    double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
+    double initial_yaw = gt_yaws[0] + initial_yaw_std/2;
     //double initial_yaw = gt_yaws[0];
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
@@ -114,6 +115,7 @@ int main() {
     std::vector<double> var_x = {P(0, 0)};
     std::vector<double> var_y = {P(1, 1)};
     std::vector<double> var_theta = {P(2, 2)};
+
 //
     double t_last = 0.0;
     for (size_t t_idx = 1; t_idx < N; ++t_idx) {
@@ -135,31 +137,33 @@ int main() {
         // Update!
         kf.update(z, Q);
 //        cout<<"update :" <<kf.x_[0]<<endl;
+
         // Save estimated state to analyze later
         mu_x.push_back(kf.x_[0]);
         mu_y.push_back(kf.x_[1]);
         mu_theta.push_back(normalize_angles(kf.x_[2]));
-
         // Save estimated variance to analyze later
         var_x.push_back(kf.P_(0, 0));
         var_y.push_back(kf.P_(1, 1));
         var_theta.push_back(kf.P_(2, 2));
         t_last = t;
     }
+    //cout<<mu_theta[4000]<<endl;
     // mu_x, mu_y, and mu_theta are the estimated 2D pose [x, y, theta]
     // var_x, var_y, and var_theta are the estimated error variances of 2D pose
 
     std::ofstream output_file("output.csv");
-    output_file << "longitude,latitude,altitude,state_x,state_y,state_yaw" << std::endl;
+    output_file << "longitude,latitude,altitude,yaw,state_x,state_y,state_yaw" << std::endl;
 
     for (size_t i = 0; i < obs_trajectory_xyz.size(); ++i) {
         double lon = obs_trajectory_xyz[i][0];
         double lat = obs_trajectory_xyz[i][1];
         double alt = obs_trajectory_xyz[i][2];
+        double yaw = gt_yaws[i];
         double state_x = mu_x[i];
         double state_y = mu_y[i];
         double state_yaw = mu_theta[i];
-        output_file << lon << "," << lat << "," << alt << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
+        output_file << lon << "," << lat << "," << alt << "," << yaw << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
 //        if (i < mu_x.size()) {
 //            double state_x = mu_x[i];
 //            double state_y = mu_y[i];
