@@ -11,12 +11,17 @@ void ExtendedKalmanFilter::update(const Eigen::Vector2d& z, const Eigen::Matrix2
     H << 1.0, 0.0, 0.0,
             0.0, 1.0, 0.0;
 
+    Eigen::Matrix<double,3,3> I;
+    I<< 1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0;
+
     Eigen::Matrix<double, 3, 2> K = P_ * H.transpose() * (H * P_ * H.transpose() + Q).inverse();
 
     Eigen::Vector2d z_ = x_.head<2>();
     x_ = x_ + K * (z - z_);
-
     P_ = P_ - K * H * P_;
+    //P_ = I - K * H * P_;
 }
 
 void ExtendedKalmanFilter::propagate(const Eigen::Vector2d& u, double dt, const Eigen::Matrix3d& R) {

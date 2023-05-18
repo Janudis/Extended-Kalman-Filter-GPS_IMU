@@ -7,7 +7,6 @@
 #include <Eigen/Dense>
 #include <random>
 
-
 double normalize_angles(double angle);
 double sample_normal_distribution(double mean, double stddev);
 double deg2rad(double deg);

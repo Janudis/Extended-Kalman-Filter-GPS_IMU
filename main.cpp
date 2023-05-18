@@ -40,9 +40,10 @@ int main() {
         while (std::getline(line_stream, value, ',')) {
             row.push_back(std::stold(value));
         }
-        gt_trajectory_lla.push_back({row[1], row[0], row[2]});
+        gt_trajectory_lla.push_back({row[1], row[0],row[2]});
         gt_yaws.push_back(deg2rad(row[9]));
-        obs_yaw_rates.push_back(deg2rad(row[12]));
+        //obs_yaw_rates.push_back(deg2rad(row[12]));
+        obs_yaw_rates.push_back(row[12]);
         obs_forward_velocities.push_back(row[3]);
     }
 //    while (std::getline(raw_data, line)) { //gia drivepark_dim
@@ -84,8 +85,8 @@ int main() {
 
     // Prepare initial estimate and its error covariance
     double initial_yaw_std = M_PI;
-//    double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
-    double initial_yaw = gt_yaws[0] + initial_yaw_std/2;
+    double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
+    //double initial_yaw = gt_yaws[0];
     //double initial_yaw = gt_yaws[0];
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
@@ -142,6 +143,7 @@ int main() {
         mu_x.push_back(kf.x_[0]);
         mu_y.push_back(kf.x_[1]);
         mu_theta.push_back(normalize_angles(kf.x_[2]));
+        //mu_theta.push_back(kf.x_[2]);
         // Save estimated variance to analyze later
         var_x.push_back(kf.P_(0, 0));
         var_y.push_back(kf.P_(1, 1));
@@ -154,7 +156,6 @@ int main() {
 
     std::ofstream output_file("output.csv");
     output_file << "longitude,latitude,altitude,yaw,state_x,state_y,state_yaw" << std::endl;
-
     for (size_t i = 0; i < obs_trajectory_xyz.size(); ++i) {
         double lon = obs_trajectory_xyz[i][0];
         double lat = obs_trajectory_xyz[i][1];
@@ -173,8 +174,6 @@ int main() {
 //            output_file << lat << "," << lon << "," << alt << ",," << ",," << std::endl;
 //        }
     }
-
     output_file.close();
-
     return 0;
 }
