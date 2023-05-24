@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "utm.hpp"
+#include "utm.h"
 #include <cmath>
 #include "geo_ned.h"
 #include <math.h>
@@ -306,4 +306,3 @@ void utmconv::utm_to_geodetic(const char &hemisphere, const int &zone, const dou
     coords.longitude *= rad_to_deg;
 
 }
-

@@ -6,7 +6,7 @@
 #include "ekf.h"
 #include "geo_ned.h"
 //#include "utm.cpp"
-#include "utm.hpp"
+#include "utm.h"
 using namespace std;
 using namespace Eigen;
 #include <iomanip>
