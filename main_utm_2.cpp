@@ -16,28 +16,29 @@ int main() {
     utmconv::utm_coords coords{};
 
     std::vector<std::array<double, 3>> obs_trajectory_xyz;
-    std::vector<std::array<double, 3>> gt_trajectory_lla; // [longitude(deg), latitude(deg), altitude(meter)] x N
+    std::vector<std::array<double, 3>> gt_trajectory_xyz;
     std::vector<double> gt_yaws; // [yaw_angle(rad),] x N
     std::vector<double> obs_yaw_rates; // [vehicle_yaw_rate(rad/s),] x N
     std::vector<double> obs_forward_velocities; // [vehicle_forward_velocity(m/s),] x N
     std::vector<double> ts;
+    double last_non_empty_speed = 0.0;
+    double last_non_empty_yaw = 0.0;
+    double last_non_empty_yaw_rate = 0.0;
+    double last_non_empty_x = 0.0;
+    double last_non_empty_y = 0.0;
 
-    std::ifstream raw_data("localization_log.csv");
+    std::ifstream raw_data("localization_log2.csv");
     std::string line, value;
 
 // Read CSV file and store values in vectors
     std::getline(raw_data, line); // Skip header line
-    std::getline(raw_data, line);
-    std::getline(raw_data, line);
-    std::getline(raw_data, line);
-    std::getline(raw_data, line);
-    std::getline(raw_data, line);
 
     long long int first_timestamp = 0;
     bool first_line = true;
 
     while (std::getline(raw_data, line)) {
         std::stringstream line_stream(line);
+        std::vector<std::string> string_row;
         std::vector<double> row;
 
         std::getline(line_stream, value, ',');
@@ -49,16 +50,36 @@ int main() {
         }
         double elapsed_time = (timestamp - first_timestamp) / 1000000.0;
         ts.push_back(elapsed_time); // Store the elapsed time in seconds
-        while (std::getline(line_stream, value, ',')) {
-            row.push_back(std::stold(value));
-        }
-        // Convert geodetic coordinates to UTM
-        utmconv::geodetic_to_utm(row[0], row[1], coords);
-        obs_trajectory_xyz.push_back({coords.easting,coords.northing});
 
-        gt_yaws.push_back(deg2rad(row[9]));
-        obs_yaw_rates.push_back(row[12]);
-        obs_forward_velocities.push_back(row[3]);
+        while (std::getline(line_stream, value, ',')) {
+            string_row.push_back(value);
+            if (!value.empty()) {
+                row.push_back(std::stold(value));
+            }
+            else {
+                row.push_back(std::numeric_limits<double>::quiet_NaN()); // Push NaN to the row for empty value
+            }
+        }
+        if (string_row[0].empty()) {  // DEN EXOUME GPS
+            utmconv::geodetic_to_utm(last_non_empty_x, last_non_empty_y, coords);
+            gt_trajectory_xyz.push_back({coords.easting,coords.northing});
+            obs_trajectory_xyz.push_back({row[0], row[1]}); //push nan nan
+            obs_forward_velocities.push_back(last_non_empty_speed);
+            last_non_empty_yaw_rate = row[12];
+            last_non_empty_yaw = row[9];
+            gt_yaws.push_back(deg2rad(last_non_empty_yaw));
+            obs_yaw_rates.push_back(last_non_empty_yaw_rate);
+        } else { //exoume GPS
+            last_non_empty_x = row[0];
+            last_non_empty_y = row[1];
+            utmconv::geodetic_to_utm(row[0], row[1], coords);
+            obs_trajectory_xyz.push_back({coords.easting,coords.northing});
+            gt_trajectory_xyz.push_back({coords.easting,coords.northing});
+            last_non_empty_speed = row[3];
+            obs_forward_velocities.push_back(last_non_empty_speed);
+            gt_yaws.push_back(deg2rad(last_non_empty_yaw));
+            obs_yaw_rates.push_back(last_non_empty_yaw_rate);
+        }
     }
 
     size_t N = ts.size(); // Number of data points
@@ -71,7 +92,6 @@ int main() {
     double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
-
     // Initialize Kalman filter
     ExtendedKalmanFilter kf;
     kf.initialize(x, xy_obs_noise_std, yaw_rate_noise_std, forward_velocity_noise_std, initial_yaw_std);
@@ -96,14 +116,14 @@ int main() {
         // Propagate!
         kf.propagate(u, dt);
         // Get measurement `z = [x, y] + noise`
-//        if (t_idx % 25 == 1) {
-//            Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
-//            // Update!
-//            kf.update(z);
-//        }
-        Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
-        // Update!
-        kf.update(z);
+        if (!std::isnan(obs_trajectory_xyz[t_idx][0])) {
+            Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
+            // Update!
+            kf.update(z);
+        }
+//        Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
+//        // Update!
+//        kf.update(z);
         // Save estimated state to analyze later
         mu_x.push_back(kf.x_[0]);
         mu_y.push_back(kf.x_[1]);
@@ -120,21 +140,13 @@ int main() {
     std::ofstream output_file("output_utm.csv");
     output_file << std::setprecision(12) << "easting,northing,yaw,state_x,state_y,state_yaw" << std::endl;
     for (size_t i = 0; i < obs_trajectory_xyz.size(); ++i) {
-        double lon = obs_trajectory_xyz[i][0];
-        double lat = obs_trajectory_xyz[i][1];
+        double lon = gt_trajectory_xyz[i][0];
+        double lat = gt_trajectory_xyz[i][1];
         double yaw = gt_yaws[i];
         double state_x = mu_x[i];
         double state_y = mu_y[i];
         double state_yaw = mu_theta[i];
         output_file << lon << "," << lat << "," << yaw << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
-//        if (i < mu_x.size()) {
-//            double state_x = mu_x[i];
-//            double state_y = mu_y[i];
-//            double state_yaw = mu_theta[i];
-//            output_file << lat << "," << lon << "," << alt << "," << state_x << "," << state_y << "," << state_yaw << std::endl;
-//        } else {
-//            output_file << lat << "," << lon << "," << alt << ",," << ",," << std::endl;
-//        }
     }
     output_file.close();
     return 0;
