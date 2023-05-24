@@ -70,32 +70,17 @@ int main() {
     double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
-    //std::cout<<x<<std::endl;
-    Eigen::Matrix3d P;
-    P << xy_obs_noise_std * xy_obs_noise_std, 0, 0,
-            0, xy_obs_noise_std * xy_obs_noise_std, 0,
-            0, 0, initial_yaw_std * initial_yaw_std;
-
-    // Prepare measurement error covariance Q
-    Eigen::Matrix2d Q;
-    Q << xy_obs_noise_std * xy_obs_noise_std, 0,
-            0, xy_obs_noise_std * xy_obs_noise_std;
-
-    // Prepare state transition noise covariance R
-    Eigen::Matrix3d R;
-    R << forward_velocity_noise_std * forward_velocity_noise_std, 0, 0,
-            0, forward_velocity_noise_std * forward_velocity_noise_std, 0,
-            0, 0, yaw_rate_noise_std * yaw_rate_noise_std;
 
     // Initialize Kalman filter
-    ExtendedKalmanFilter kf(x, P);
+    ExtendedKalmanFilter kf;
+    kf.initialize(x, xy_obs_noise_std, yaw_rate_noise_std, forward_velocity_noise_std, initial_yaw_std);
 
     std::vector<double> mu_x = {x[0]};
     std::vector<double> mu_y = {x[1]};
     std::vector<double> mu_theta = {x[2]};
-    std::vector<double> var_x = {P(0, 0)};
-    std::vector<double> var_y = {P(1, 1)};
-    std::vector<double> var_theta = {P(2, 2)};
+    std::vector<double> var_x = {kf.P(0, 0)};
+    std::vector<double> var_y = {kf.P(1, 1)};
+    std::vector<double> var_theta = {kf.P(2, 2)};
 
 //
     double t_last = 0.0;
@@ -108,11 +93,11 @@ int main() {
         // its noise covariance must be multiplied with `dt**2.`
         //Eigen::Matrix3d R_ = R * (dt * dt);
         // Propagate!
-        kf.propagate(u, dt, R);
+        kf.propagate(u, dt);
         // Get measurement `z = [x, y] + noise`
         Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
         // Update!
-        kf.update(z, Q);
+        kf.update(z);
         // Save estimated state to analyze later
         mu_x.push_back(kf.x_[0]);
         mu_y.push_back(kf.x_[1]);

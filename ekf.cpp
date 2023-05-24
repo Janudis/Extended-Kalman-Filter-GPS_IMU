@@ -1,12 +1,24 @@
 #include "ekf.h"
-#include <iostream>
-#include "geo_ned.h"
+
+void ExtendedKalmanFilter::initialize(const Eigen::Vector3d& x, double xy_obs_noise_std, double yaw_rate_noise_std, double forward_velocity_noise_std, double initial_yaw_std){
+    x_ = Eigen::Vector3d(x);
 
 
-ExtendedKalmanFilter::ExtendedKalmanFilter(const Eigen::Vector3d& x, const Eigen::Matrix3d& P)
-        : x_(x), P_(P) {}
+    P << xy_obs_noise_std * xy_obs_noise_std, 0, 0,
+            0, xy_obs_noise_std * xy_obs_noise_std, 0,
+            0, 0, initial_yaw_std * initial_yaw_std;
 
-void ExtendedKalmanFilter::update(const Eigen::Vector2d& z, const Eigen::Matrix2d& Q) {
+    P_ = Eigen::Matrix3d(P);
+
+    Q << xy_obs_noise_std * xy_obs_noise_std, 0,
+            0, xy_obs_noise_std * xy_obs_noise_std;
+
+    R << forward_velocity_noise_std * forward_velocity_noise_std, 0, 0,
+            0, forward_velocity_noise_std * forward_velocity_noise_std, 0,
+            0, 0, yaw_rate_noise_std * yaw_rate_noise_std;
+}
+
+void ExtendedKalmanFilter::update(const Eigen::Vector2d& z) {
     Eigen::Matrix<double, 2, 3> H;
     H << 1.0, 0.0, 0.0,
             0.0, 1.0, 0.0;
@@ -24,7 +36,7 @@ void ExtendedKalmanFilter::update(const Eigen::Vector2d& z, const Eigen::Matrix2
     //P_ = I - K * H * P_;
 }
 
-void ExtendedKalmanFilter::propagate(const Eigen::Vector2d& u, double dt, const Eigen::Matrix3d& R) {
+void ExtendedKalmanFilter::propagate(const Eigen::Vector2d& u, double dt) {
     double v = u[0];
     double omega = u[1];
     //std::cout<<"omega"<<omega<<std::endl;
