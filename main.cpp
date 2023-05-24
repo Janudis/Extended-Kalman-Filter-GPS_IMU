@@ -5,8 +5,6 @@
 #include <string>
 #include "ekf.h"
 #include "geo_ned.h"
-//#include "utm.cpp"
-#include "utm.hpp"
 using namespace std;
 using namespace Eigen;
 
