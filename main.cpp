@@ -5,10 +5,16 @@
 #include <string>
 #include "ekf.h"
 #include "geo_ned.h"
+//#include "utm.cpp"
+#include "utm.hpp"
 using namespace std;
 using namespace Eigen;
 
 int main() {
+    // Create an instance of utmconv
+    //utmconv::utm_coords coords;
+
+    //std::vector<std::array<double, 3>> obs_trajectory_xyz;
     std::vector<std::array<double, 3>> gt_trajectory_lla; // [longitude(deg), latitude(deg), altitude(meter)] x N
     std::vector<double> gt_yaws; // [yaw_angle(rad),] x N
     std::vector<double> obs_yaw_rates; // [vehicle_yaw_rate(rad/s),] x N
@@ -41,12 +47,16 @@ int main() {
             row.push_back(std::stold(value));
         }
         gt_trajectory_lla.push_back({row[1], row[0],row[2]});
+
+//        // Convert geodetic coordinates to UTM
+//        utmconv::geodetic_to_utm(row[0], row[1], coords);
+//        obs_trajectory_xyz.push_back({coords.easting,coords.northing});
+
         gt_yaws.push_back(deg2rad(row[9]));
-        //obs_yaw_rates.push_back(deg2rad(row[12]));
         obs_yaw_rates.push_back(row[12]);
         obs_forward_velocities.push_back(row[3]);
     }
-//    while (std::getline(raw_data, line)) { //gia drivepark_dim
+    //    while (std::getline(raw_data, line)) { //gia drivepark_dim
 //        std::stringstream line_stream(line);
 //        std::vector<double> row;
 //        while (std::getline(line_stream, value, ',')) {
@@ -70,15 +80,9 @@ int main() {
 //        obs_yaw_rates.push_back(deg2rad(row[13]));
 //        obs_forward_velocities.push_back(row[4]);
 //    }
-
     std::array<double, 3> origin = gt_trajectory_lla[0]; // Set the initial position to the origin
     std::vector<std::array<double, 3>> obs_trajectory_xyz = lla_to_enu(gt_trajectory_lla, origin);
-//    std::cout<<gt_trajectory_lla[199][0]<<std::endl;
-//    std::cout<<gt_trajectory_lla[200][0]<<std::endl;
     size_t N = ts.size(); // Number of data points
-//    std::cout<<obs_trajectory_xyz[1000][0]<<std::endl;
-//    std::cout<<obs_trajectory_xyz[1000][1]<<std::endl;
-//    std::cout<<obs_trajectory_xyz[1000][2]<<std::endl;
     double xy_obs_noise_std = 5.0; // Standard deviation of observation noise of x and y in meters
     double yaw_rate_noise_std = 0.02; // Standard deviation of yaw rate in rad/s
     double forward_velocity_noise_std = 0.3; // Standard deviation of forward velocity in m/s
@@ -86,8 +90,6 @@ int main() {
     // Prepare initial estimate and its error covariance
     double initial_yaw_std = M_PI;
     double initial_yaw = gt_yaws[0] + sample_normal_distribution(0, initial_yaw_std);
-    //double initial_yaw = gt_yaws[0];
-    //double initial_yaw = gt_yaws[0];
 
     Eigen::Vector3d x(obs_trajectory_xyz[0][0], obs_trajectory_xyz[0][1], initial_yaw);
     //std::cout<<x<<std::endl;
@@ -122,8 +124,6 @@ int main() {
     for (size_t t_idx = 1; t_idx < N; ++t_idx) {
         double t = ts[t_idx];
         double dt = t - t_last;
-        //std::cout<<"t" <<t<<std::endl;
-        //std::cout<<"dt" <<dt<<std::endl;
         // Get control input `u = [v, omega] + noise`
         Eigen::Vector2d u(obs_forward_velocities[t_idx], obs_yaw_rates[t_idx]);
         // Because velocity and yaw rate are multiplied with `dt` in the state transition function,
@@ -131,26 +131,20 @@ int main() {
         //Eigen::Matrix3d R_ = R * (dt * dt);
         // Propagate!
         kf.propagate(u, dt, R);
-        //cout<<"predict :" <<kf.x_[0]<<endl;
         // Get measurement `z = [x, y] + noise`
         Eigen::Vector2d z(obs_trajectory_xyz[t_idx][0], obs_trajectory_xyz[t_idx][1]);
-        //cout<<"z"<<z<<endl;
         // Update!
         kf.update(z, Q);
-//        cout<<"update :" <<kf.x_[0]<<endl;
-
         // Save estimated state to analyze later
         mu_x.push_back(kf.x_[0]);
         mu_y.push_back(kf.x_[1]);
         mu_theta.push_back(normalize_angles(kf.x_[2]));
-        //mu_theta.push_back(kf.x_[2]);
         // Save estimated variance to analyze later
         var_x.push_back(kf.P_(0, 0));
         var_y.push_back(kf.P_(1, 1));
         var_theta.push_back(kf.P_(2, 2));
         t_last = t;
     }
-    //cout<<mu_theta[4000]<<endl;
     // mu_x, mu_y, and mu_theta are the estimated 2D pose [x, y, theta]
     // var_x, var_y, and var_theta are the estimated error variances of 2D pose
 

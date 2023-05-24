@@ -10,4 +10,6 @@ add_executable(hav_cpp_from_python_2
         ekf.h
         geo_ned.cpp
         geo_ned.h
-        main.cpp)
+        utm.hpp
+        utm.cpp
+        main_utm.cpp)
