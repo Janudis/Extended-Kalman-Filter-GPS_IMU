@@ -26,7 +26,11 @@ C++ compiler supporting C++11 or higher
 Eigen library (for linear algebra operations)
 
 # Usage
-Change the CMakeLists.txt
+1) Install the required dependencies and ensure they are properly linked in your build environment.
+2) Place the input data file (localization_log2.csv) in the same directory as the code files.
+3) Compile the code using a C++ compiler.
+4) Change the CMakeLists.txt before running the compiled executable.
+5) The estimated position and orientation will be saved in the output_utm.csv file.
 
 # Code Structure
 ekf.h: Header file containing the declaration of the ExtendedKalmanFilter class, which implements the EKF algorithm.
