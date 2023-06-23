@@ -1,6 +1,4 @@
 # GPS, Velocity and IMU fusion with Extended Kalman Filter
-Use main.cpp for ENU coordinate system 
-Use main_utm for UTM coordinate system
 # Algorithm
 ![alt text](https://github.com/Janudis/EKF_GPS_IMU/blob/master/Extended-Kalman-Filter-Step.png)
 
