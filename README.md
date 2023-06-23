@@ -1,5 +1,5 @@
 # GPS, Velocity and IMU fusion with Extended Kalman Filter
-Use main.cpp for ENU coordinate system and change the CMakeLists.txt
+Use main.cpp for ENU coordinate system 
 Use main_utm for UTM coordinate system
 # Algorithm
 ![alt text](https://github.com/Janudis/EKF_GPS_IMU/blob/master/Extended-Kalman-Filter-Step.png)
@@ -20,5 +20,44 @@ In our case, IMU provide data more frequently than GPS. Here is a step-by-step d
 6) Repeat steps 2-5: This process is then repeated for each time step, using the a posteriori estimates from the previous time step as the a priori estimates for the current step.
    
 7) Handling of GPS updates: When the GPS update is available, it is incorporated in the update step, otherwise the process continues with the prediction step using only the IMU data.
+
+# Dependencies
+C++ compiler supporting C++11 or higher
+Eigen library (for linear algebra operations)
+
+# Usage
+Change the CMakeLists.txt
+
+# Code Structure
+ekf.h: Header file containing the declaration of the ExtendedKalmanFilter class, which implements the EKF algorithm.
+
+geo_ned.h: Header file containing helper functions for converting between geodetic (WGS84) and East-North-Down (ENU) coordinate systems.
+
+utm.h: Header file containing the definition of the utm_coords struct and the utmconv namespace, which provides functions for converting between geodetic and UTM coordinates.
+
+main_utm.cpp: The main C++ file that reads input data from a CSV file, performs the GPS and IMU fusion using the EKF, and outputs the estimated position and orientation. (Use main.cpp for ENU coordinate system).
+
+# Input Data Format
+The input data is expected to be in a CSV file (localization_log2.csv) with the following columns:
+
+Timestamp (in nanoseconds)
+Latitude (in degrees, WGS84)
+Longitude (in degrees, WGS84)
+Altitude (in meters, WGS84)
+Forward velocity (in meters per second)
+Yaw rate (in radians per second)
+
+# Output
+The output of the code is a CSV file (output_utm.csv) containing the estimated position and orientation in UTM coordinates. The file has the following columns:
+
+Easting (UTM coordinate, in meters)
+Northing (UTM coordinate, in meters)
+Yaw (orientation angle, in radians)
+Estimated X position (in meters)
+Estimated Y position (in meters)
+Estimated yaw (in radians)
+
+# Adjusting Parameters
+The code provides options for adjusting the standard deviation of the observation noise for x and y coordinates (xy_obs_noise_std), the yaw rate (yaw_rate_noise_std), and the forward velocity (forward_velocity_noise_std). These parameters can be modified in the code to suit your specific scenario and sensor characteristics.
 
 
