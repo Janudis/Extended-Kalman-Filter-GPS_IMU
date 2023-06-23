@@ -40,20 +40,30 @@ main_utm.cpp: The main C++ file that reads input data from a CSV file, performs 
 The input data is expected to be in a CSV file (localization_log2.csv) with the following columns:
 
 Timestamp (in nanoseconds)
+
 Latitude (in degrees, WGS84)
+
 Longitude (in degrees, WGS84)
+
 Altitude (in meters, WGS84)
+
 Forward velocity (in meters per second)
+
 Yaw rate (in radians per second)
 
 # Output
 The output of the code is a CSV file (output_utm.csv) containing the estimated position and orientation in UTM coordinates. The file has the following columns:
 
 Easting (UTM coordinate, in meters)
+
 Northing (UTM coordinate, in meters)
+
 Yaw (orientation angle, in radians)
+
 Estimated X position (in meters)
+
 Estimated Y position (in meters)
+
 Estimated yaw (in radians)
 
 # Adjusting Parameters
