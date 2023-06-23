@@ -17,6 +17,7 @@ In our case, IMU provide data more frequently than GPS. Here is a step-by-step d
 
 # Dependencies
 C++ compiler supporting C++11 or higher
+
 Eigen library (for linear algebra operations)
 
 # Usage
