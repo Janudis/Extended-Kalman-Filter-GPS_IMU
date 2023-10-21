@@ -32,8 +32,8 @@ void ExtendedKalmanFilter::update(const Eigen::Vector2d& z) {
 
     Eigen::Vector2d z_ = x_.head<2>();
     x_ = x_ + K * (z - z_);
-    P_ = P_ - K * H * P_;
-    //P_ = I - K * H * P_;
+    // P_ = P_ - K * H * P_;
+    P_ = (I - (K * H)) * P_;
 }
 
 void ExtendedKalmanFilter::propagate(const Eigen::Vector2d& u, double dt) {
