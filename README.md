@@ -13,8 +13,8 @@ In our case, IMU provide data more frequently than GPS. Here is a step-by-step d
 6) Repeat steps 2-5: This process is then repeated for each time step, using the a posteriori estimates from the previous time step as the a priori estimates for the current step.  
 
 # Dependencies
-1)C++ compiler supporting C++11 or higher
-2)Eigen library (for linear algebra operations)
+1) C++ compiler supporting C++11 or higher
+2) Eigen library (for linear algebra operations)
 
 # Usage
 1) Install the required dependencies and ensure they are properly linked in your build environment.
