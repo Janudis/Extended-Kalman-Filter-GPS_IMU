@@ -5,7 +5,7 @@
 This code implements an Extended Kalman Filter (EKF) for fusing Global Positioning System (GPS) and Inertial Measurement Unit (IMU) measurements. The goal is to estimate the state (position and orientation) of a vehicle using both GPS and IMU data.
 
 In our case, IMU provide data more frequently than GPS. Here is a step-by-step description of the process:
-1) Initialization: Firstly, initialize your EKF with initial estimates for the position, velocity, and orientation, typically using your first GPS reading for position and velocity. The covariance matrix (P) should also be initialized to reflect initial uncertainty.
+1) Initialization: Firstly, initialize your EKF state [position, velocity, orientation] using the first GPS and IMU reading. The covariance matrix (P) should also be initialized to reflect initial uncertainty.
 2) Prediction step (also known as Time Update): In the prediction step, you make a prediction of the current state using the process model and the previously estimated state. In our case, the state can be represented as [position, velocity, orientation]. We also need to predict the state covariance matrix (P) at this point.
 3) Update step (also known as Measurement Update): In the update step, we correct the predicted state using the measurement data. GPS frequency is 4 Hz.
 4) Estimate update: With the Kalman gain, we can compute the updated (a posteriori) state estimate by combining the predicted state estimate and the weighted difference between the actual measurement and the measurement predicted by the a priori estimate (also known as the measurement residual).  
@@ -31,7 +31,7 @@ geo_ned.h: Header file containing helper functions for converting between geodet
 
 utm.h: Header file containing the definition of the utm_coords struct and the utmconv namespace, which provides functions for converting between geodetic and UTM coordinates.
 
-main_utm.cpp: The main C++ file that reads input data from a CSV file, performs the GPS and IMU fusion using the EKF, and outputs the estimated position and orientation. (Use main.cpp for ENU coordinate system).
+main_utm.cpp: The main C++ file that reads input data from a CSV file in UTM system, performs the GPS and IMU fusion using the EKF, and outputs the estimated position and orientation. (Use main.cpp for ENU coordinate system).
 
 # Input Data Format
 The input data is expected to be in a CSV file (localization_log2.csv) with the following columns:
